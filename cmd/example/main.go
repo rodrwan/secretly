@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/rodrwan/secretly/pkg/secretly"
 )
 
 func main() {
 	client := secretly.New(
-		secretly.WithBaseURL("http://localhost:8080/api/v1"),
+		secretly.WithBaseURL("http://localhost:8080"),
 	)
 
 	env, err := client.GetEnv()
@@ -19,8 +18,4 @@ func main() {
 	}
 
 	fmt.Println(env)
-
-	client.LoadToEnvironment()
-
-	fmt.Println(os.Getenv("BEBESITA"))
 }

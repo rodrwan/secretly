@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "http://localhost:8080/api/v1"
+	defaultBaseURL = "http://localhost:8080"
 	defaultTimeout = 10 * time.Second
 )
 
@@ -65,7 +65,7 @@ func New(opts ...ClientOption) *Client {
 
 // GetEnv retrieves all environment variables from the Secretly server
 func (c *Client) GetEnv() (map[string]interface{}, error) {
-	url := fmt.Sprintf("%s/env", c.BaseURL)
+	url := fmt.Sprintf("%s/api/v1/env", c.BaseURL)
 
 	resp, err := c.HTTPClient.Get(url)
 	if err != nil {
