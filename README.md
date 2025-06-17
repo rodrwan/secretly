@@ -140,18 +140,19 @@ func main() {
     )
 
     // Get all environment variables
-    vars, err := client.GetAll()
-    if err != nil {
-        log.Fatal(err)
-    }
+    envs, err := client.GetAll()
+	if err != nil {
+		log.Fatalf("failed to get env: %v", err)
+	}
 
-    // Get a specific variable
-    value, err := client.Get("DATABASE_URL")
-    if err != nil {
-        log.Fatal(err)
-    }
+	fmt.Println(envs)
 
-    fmt.Printf("Database URL: %s\n", value)
+    env, err := client.GetEnvironmentByName("development")
+	if err != nil {
+		log.Fatalf("failed to get env: %v", err)
+	}
+
+	fmt.Println(env)
 }
 ```
 
@@ -169,6 +170,7 @@ client := secretly.New(
 ### Error Handling
 
 ```go
+TODO: Create this in the future.
 value, err := client.Get("DATABASE_URL")
 if err != nil {
     if secretly.IsNotFound(err) {
