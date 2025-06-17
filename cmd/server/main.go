@@ -1,13 +1,17 @@
 package main
 
 import (
-	"encoding/json"
+	"database/sql"
 	"log"
 	"net/http"
 
+	"github.com/rodrwan/secretly/cmd/server/handlers"
 	"github.com/rodrwan/secretly/internal/config"
+	"github.com/rodrwan/secretly/internal/database"
 	"github.com/rodrwan/secretly/internal/env"
 	"github.com/rodrwan/secretly/internal/web"
+
+	_ "modernc.org/sqlite"
 )
 
 func main() {
@@ -15,47 +19,23 @@ func main() {
 	cfg := config.New()
 	envManager := env.NewManager(cfg.EnvPath)
 
+	db, err := sql.Open("sqlite", cfg.DBPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	queries := database.New(db)
+
 	// Server configuration
-	mux := http.NewServeMux()
+	router := http.NewServeMux()
 
 	// Configure web handler
-	webHandler := web.NewHandler(envManager)
-	webHandler.RegisterRoutes(mux)
-
-	// API endpoints
-	mux.HandleFunc(cfg.BasePath+"/env", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			vars, err := envManager.Load()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(vars)
-
-		case http.MethodPost:
-			var vars map[string]string
-			if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			if err := envManager.Save(vars); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			w.WriteHeader(http.StatusOK)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	webHandler := web.NewHandler(envManager, queries)
+	webHandler.RegisterRoutes(router)
+	handlers.RegisterRoutes(router, queries)
 
 	// Start server
 	log.Printf("Server started on :%s", cfg.Port)
-	if err := http.ListenAndServe(":"+cfg.Port, mux); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Port, router); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -22,35 +22,80 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-// Function to load environment variables
-async function loadVariables() {
+// Function to load environments and their variables
+async function loadEnvironments() {
   try {
     const response = await fetch("/api/v1/env");
-    const variables = await response.json();
+    const environments = await response.json();
 
-    const container = document.getElementById("variables-container");
+    const container = document.getElementById("environments-container");
     container.innerHTML = "";
 
-    Object.entries(variables).forEach(([key, value]) => {
-      addVariableToContainer(key, value);
+    environments.forEach((env) => {
+      addEnvironmentToContainer(env);
     });
   } catch (error) {
-    console.error("Error loading variables:", error);
-    showToast("Error loading environment variables", "error");
+    console.error("Error loading environments:", error);
+    showToast("Error loading environments", "error");
   }
 }
 
-// Function to add a new variable to the container
-function addVariableToContainer(key = "", value = "") {
-  const template = document.getElementById("variable-template");
-  const container = document.getElementById("variables-container");
+// Function to add a new environment to the container
+function addEnvironmentToContainer(env = null) {
+  const template = document.getElementById("environment-template");
+  const container = document.getElementById("environments-container");
 
+  const clone = template.content.cloneNode(true);
+  const nameInput = clone.querySelector(".environment-name");
+  const variablesContainer = clone.querySelector(".variables-container");
+
+  if (env) {
+    nameInput.value = env.name;
+    nameInput.dataset.id = env.id;
+
+    // Add existing variables
+    env.values.forEach((value) => {
+      addVariableToContainer(variablesContainer, value);
+    });
+  }
+
+  // Add animation class
+  const environmentItem = clone.querySelector(".environment-item");
+  environmentItem.classList.add("animate-fade-in");
+
+  container.appendChild(clone);
+}
+
+// Function to add a new environment
+function addNewEnvironment() {
+  addEnvironmentToContainer();
+}
+
+// Function to remove an environment
+function removeEnvironment(button) {
+  const item = button.closest(".environment-item");
+  item.classList.add("animate-fade-out");
+
+  // Wait for animation to complete before removing
+  setTimeout(() => {
+    item.remove();
+  }, 300);
+}
+
+// Function to add a new variable to an environment
+function addVariableToContainer(container, value = null) {
+  const template = document.getElementById("variable-template");
   const clone = template.content.cloneNode(true);
   const keyInput = clone.querySelector(".variable-key");
   const valueInput = clone.querySelector(".variable-value");
+  const removeButton = clone.querySelector(".remove-button");
 
-  keyInput.value = key;
-  valueInput.value = value;
+  if (value) {
+    keyInput.value = value.key;
+    valueInput.value = value.value;
+    keyInput.dataset.id = value.id;
+    removeButton.dataset.id = value.id;
+  }
 
   // Add animation class
   const variableItem = clone.querySelector(".variable-item");
@@ -60,53 +105,98 @@ function addVariableToContainer(key = "", value = "") {
 }
 
 // Function to add a new variable
-function addNewVariable() {
-  addVariableToContainer();
+function addNewVariable(button) {
+  const environmentItem = button.closest(".environment-item");
+  const variablesContainer = environmentItem.querySelector(
+    ".variables-container"
+  );
+  addVariableToContainer(variablesContainer);
 }
 
 // Function to remove a variable
 function removeVariable(button) {
   const item = button.closest(".variable-item");
   item.classList.add("animate-fade-out");
+  // get the environment id
+  const environmentItem = button.closest(".environment-item");
+  const nameInput = environmentItem.querySelector(".environment-name");
+  // get the variable key
+  const valueInput = item.querySelector(".remove-button ");
 
   // Wait for animation to complete before removing
-  setTimeout(() => {
+  setTimeout(async () => {
     item.remove();
+    try {
+      const environmentId = nameInput.dataset.id;
+      const valueId = valueInput.dataset.id;
+      const url = `/api/v1/env/${environmentId}/value/${valueId}`;
+
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        showToast("Variable deleted successfully");
+        loadEnvironments(); // Reload to ensure synchronization
+      } else {
+        throw new Error("Error deleting variable");
+      }
+    } catch (error) {
+      console.error("Error saving environment:", error);
+      showToast("Error saving environment", "error");
+    }
   }, 300);
 }
 
-// Function to save variables
-async function saveVariables() {
-  const variables = {};
-  const items = document.querySelectorAll(".variable-item");
+// Function to save an environment and its variables
+async function saveEnvironment(button) {
+  const environmentItem = button.closest(".environment-item");
+  const nameInput = environmentItem.querySelector(".environment-name");
+  const variablesContainer = environmentItem.querySelector(
+    ".variables-container"
+  );
+  const variables = [];
 
-  items.forEach((item) => {
+  variablesContainer.querySelectorAll(".variable-item").forEach((item) => {
     const key = item.querySelector(".variable-key").value.trim();
     const value = item.querySelector(".variable-value").value.trim();
 
     if (key) {
-      variables[key] = value;
+      variables.push({
+        key: key,
+        value: value,
+      });
     }
   });
 
   try {
-    const response = await fetch("/api/v1/env", {
-      method: "POST",
+    const environmentId = nameInput.dataset.id;
+    const method = environmentId ? "PUT" : "POST";
+    const url = environmentId ? `/api/v1/env/${environmentId}` : "/api/v1/env";
+
+    const response = await fetch(url, {
+      method: method,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(variables),
+      body: JSON.stringify({
+        name: nameInput.value.trim(),
+        values: variables,
+      }),
     });
 
     if (response.ok) {
-      showToast("Variables saved successfully");
-      loadVariables(); // Reload to ensure synchronization
+      showToast("Environment saved successfully");
+      loadEnvironments(); // Reload to ensure synchronization
     } else {
-      throw new Error("Error saving");
+      throw new Error("Error saving environment");
     }
   } catch (error) {
-    console.error("Error saving variables:", error);
-    showToast("Error saving environment variables", "error");
+    console.error("Error saving environment:", error);
+    showToast("Error saving environment", "error");
   }
 }
 
@@ -130,5 +220,5 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Load variables on startup
-document.addEventListener("DOMContentLoaded", loadVariables);
+// Load environments on startup
+document.addEventListener("DOMContentLoaded", loadEnvironments);

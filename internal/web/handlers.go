@@ -3,44 +3,37 @@ package web
 import (
 	"net/http"
 
+	"github.com/rodrwan/secretly/internal/database"
+	"github.com/rodrwan/secretly/internal/env"
 	"github.com/rodrwan/secretly/internal/web/templates"
 )
 
 // Handler maneja las rutas web
 type Handler struct {
-	envManager interface {
-		Load() (map[string]string, error)
-		Save(map[string]string) error
-	}
+	envManager *env.Manager
+	queries    *database.Queries
 }
 
 // NewHandler crea una nueva instancia del manejador web
-func NewHandler(envManager interface {
-	Load() (map[string]string, error)
-	Save(map[string]string) error
-}) *Handler {
+func NewHandler(envManager *env.Manager, queries *database.Queries) *Handler {
 	return &Handler{
 		envManager: envManager,
+		queries:    queries,
 	}
 }
 
 // RegisterRoutes registra las rutas web
-func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 	// Servir archivos estáticos
 	fs := http.FileServer(http.Dir("internal/web/static"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	router.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// Rutas de la aplicación
-	mux.HandleFunc("/", h.handleIndex)
+	router.HandleFunc("/", h.handleIndex)
 }
 
 // handleIndex maneja la ruta principal
 func (h *Handler) handleIndex(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
 	component := templates.Index()
 	err := component.Render(r.Context(), w)
 	if err != nil {

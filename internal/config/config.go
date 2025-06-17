@@ -9,6 +9,7 @@ type Config struct {
 	Port     string
 	EnvPath  string
 	BasePath string
+	DBPath   string
 }
 
 // New creates a new configuration with default values
@@ -17,6 +18,7 @@ func New() *Config {
 		Port:     getEnv("PORT", "8080"),
 		EnvPath:  getEnv("ENV_PATH", ".env"),
 		BasePath: getEnv("BASE_PATH", "/api/v1"),
+		DBPath:   getEnv("DB_PATH", "secretly.db"),
 	}
 }
 
