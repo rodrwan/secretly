@@ -63,3 +63,8 @@ dev: generate-templ build run
 
 # Docker development workflow
 docker-dev: docker-build docker-up
+
+# Publish the image
+publish:
+	@echo "Publishing image..."
+	./scripts/publish.sh

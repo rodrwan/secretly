@@ -1,76 +1,116 @@
-# Secretly 🔐
+# Secretly
 
-Secretly is a web application that allows you to create and manage a .env file through a simple web interface.
+A modern web application for managing environment variables securely.
 
-This service is built in Go and exposes a dashboard where you can securely manage your .env content.
+## Quick Start
 
-It also exposes an HTTP client that allows you to consume this env remotely, simply and securely.
+The easiest way to run Secretly is using Docker:
+
+```bash
+docker run -d \
+  --name secretly \
+  -p 8080:8080 \
+  -v $(pwd)/data:/app/data \
+  rodrwan/secretly:latest
+```
+
+Then open your browser at [http://localhost:8080](http://localhost:8080)
+
+### Using Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  secretly:
+    image: rodrwan/secretly:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+```
+
+Save as `docker-compose.yml` and run:
+```bash
+docker-compose up -d
+```
+
+## Configuration
+
+The following environment variables can be configured:
+
+- `PORT`: Port to run the server on (default: 8080)
+- `ENV_PATH`: Path to the .env file (default: /app/data/.env)
+- `BASE_PATH`: API base path (default: /api/v1)
+
+Example with custom configuration:
+
+```bash
+docker run -d \
+  --name secretly \
+  -p 9000:9000 \
+  -v $(pwd)/data:/app/data \
+  -e PORT=9000 \
+  -e BASE_PATH=/api/v1 \
+  rodrwan/secretly:latest
+```
 
 ## Development
 
+If you want to contribute or run from source:
+
 ### Prerequisites
+
 - Go 1.24 or later
-- Docker and Docker Compose (for containerized deployment)
-- Make (for using Makefile commands)
+- Docker and Docker Compose
+- Make
 
 ### Quick Start
 
-#### Using Make
-The project includes a Makefile with common commands:
-
-```bash
-# Show available commands
-make help
-
-# Development workflow (build and run locally)
-make dev
-
-# Docker development workflow
-make docker-dev
-
-# Generate templ files
-make generate-templ
-
-# Run tests
-make test
-```
-
-#### Manual Setup
 1. Clone the repository:
 ```bash
 git clone https://github.com/rodrwan/secretly.git
 cd secretly
 ```
 
-2. Start the application:
+2. Run with Make:
 ```bash
-docker-compose up -d
+make help        # Show available commands
+make dev         # Run locally
+make docker-dev  # Run with Docker
 ```
 
-The application will be available at http://localhost:8080
+### Manual Setup
 
-### Environment Variables
-The following environment variables can be configured in the `docker-compose.yml` file:
-
-- `PORT`: The port where the application will run (default: 8080)
-- `ENV_PATH`: Path to the .env file (default: /app/data/.env)
-- `BASE_PATH`: Base path for the API (default: /api/v1)
-
-### Data Persistence
-The .env file is stored in the `./data` directory and is persisted through a Docker volume.
-
-### Stopping the Application
+1. Install dependencies:
 ```bash
-# Using Make
-make docker-down
-
-# Or using Docker Compose directly
-docker-compose down
+go mod download
 ```
+
+2. Generate template files:
+```bash
+make generate-templ
+```
+
+3. Run the application:
+```bash
+go run cmd/server/main.go
+```
+
+## Features
+
+- Modern web interface for managing environment variables
+- Secure storage of sensitive data
+- RESTful API for programmatic access
+- Docker support for easy deployment
+- Dark theme optimized for developers
+
+## API Endpoints
+
+- `GET /api/v1/env`: Get all environment variables
+- `POST /api/v1/env`: Update environment variables
+- `GET /api/v1/env/{key}`: Get a specific environment variable
 
 ## Client Integration
-
-You can integrate the Secretly client into your Go applications to remotely access environment variables. Here's how to do it:
 
 ### Installation
 
@@ -82,21 +122,22 @@ go get github.com/rodrwan/secretly
 
 ### Usage
 
-Here's a simple example of how to use the Secretly client in your Go application:
-
 ```go
 package main
 
 import (
     "fmt"
     "log"
-
+    
     "github.com/rodrwan/secretly/pkg/secretly"
 )
 
 func main() {
     // Create a new client
-    client := secretly.NewClient("http://localhost:8080")
+    client := secretly.New(
+        secretly.WithBaseURL("http://localhost:8080"),
+        secretly.WithTimeout(5 * time.Second),
+    )
 
     // Get all environment variables
     vars, err := client.GetAll()
@@ -104,95 +145,51 @@ func main() {
         log.Fatal(err)
     }
 
-    // Access specific variables
-    fmt.Println("Database URL:", vars["DATABASE_URL"])
-    fmt.Println("API Key:", vars["API_KEY"])
-
     // Get a specific variable
-    dbURL, err := client.Get("DATABASE_URL")
+    value, err := client.Get("DATABASE_URL")
     if err != nil {
         log.Fatal(err)
     }
-    fmt.Println("Database URL:", dbURL)
+
+    fmt.Printf("Database URL: %s\n", value)
 }
 ```
 
 ### Client Configuration
 
-The client can be configured with different options:
+The client can be configured with the following options:
 
 ```go
-client := secretly.NewClient(
-    secretly.WithBaseURL("http://localhost:8080"),
-    secretly.WithTimeout(5 * time.Second),
+client := secretly.New(
+    secretly.WithBaseURL("http://localhost:8080"),  // Set custom base URL
+    secretly.WithTimeout(5 * time.Second),          // Set custom timeout
 )
 ```
 
 ### Error Handling
 
-The client provides detailed error information:
-
 ```go
-vars, err := client.GetAll()
+value, err := client.Get("DATABASE_URL")
 if err != nil {
-    switch {
-    case secretly.IsNotFound(err):
-        fmt.Println("Environment variables not found")
-    case secretly.IsUnauthorized(err):
-        fmt.Println("Unauthorized access")
-    default:
-        fmt.Printf("Error: %v\n", err)
+    if secretly.IsNotFound(err) {
+        // Handle not found error
+    } else if secretly.IsUnauthorized(err) {
+        // Handle unauthorized error
+    } else {
+        // Handle other errors
     }
-    return
 }
 ```
 
 ### Best Practices
 
-1. **Caching**: Consider implementing caching for frequently accessed variables:
-```go
-type CachedClient struct {
-    client    *secretly.Client
-    cache     map[string]string
-    cacheTime time.Time
-}
+1. **Caching**: Consider caching environment variables locally
+2. **Fallbacks**: Always provide fallback values for critical variables
+3. **Health Checks**: Implement health checks for the Secretly service
+4. **Error Handling**: Handle all possible error cases gracefully
 
-func (c *CachedClient) Get(key string) (string, error) {
-    if time.Since(c.cacheTime) > 5*time.Minute {
-        vars, err := c.client.GetAll()
-        if err != nil {
-            return "", err
-        }
-        c.cache = vars
-        c.cacheTime = time.Now()
-    }
-    return c.cache[key], nil
-}
-```
+## License
 
-2. **Environment Fallback**: Always provide fallback values for critical variables:
-```go
-func getConfig(client *secretly.Client) (*Config, error) {
-    vars, err := client.GetAll()
-    if err != nil {
-        return &Config{
-            DatabaseURL: os.Getenv("DATABASE_URL"),
-            APIKey:     os.Getenv("API_KEY"),
-        }, nil
-    }
-    return &Config{
-        DatabaseURL: vars["DATABASE_URL"],
-        APIKey:     vars["API_KEY"],
-    }, nil
-}
-```
-
-3. **Health Checks**: Implement health checks for the Secretly service:
-```go
-func isSecretlyHealthy(client *secretly.Client) bool {
-    _, err := client.GetAll()
-    return err == nil
-}
-```
+MIT License - see LICENSE file for details
 
 

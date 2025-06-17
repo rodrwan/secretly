@@ -19,22 +19,37 @@ COPY . .
 RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN templ generate ./internal/web/templates/
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/secretly ./cmd/server
+# Build the application with optimizations
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/secretly ./cmd/server
 
 # Final stage
 FROM alpine:latest
 
 WORKDIR /app
 
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata
+
+# Create non-root user
+RUN adduser -D -g '' appuser
+
 # Copy the binary from builder
 COPY --from=builder /app/secretly .
 
-# Create directory for .env file
-RUN mkdir -p /app/data
+# Create directory for .env file and set permissions
+RUN mkdir -p /app/data && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8080
+
+# Set environment variables
+ENV PORT=8080
+ENV ENV_PATH=/app/data/.env
+ENV BASE_PATH=/api/v1
 
 # Run the application
 CMD ["./secretly"]

@@ -5,4 +5,9 @@ data/
 README.md
 docker-compose.yml
 Dockerfile
-.dockerignore 
+.dockerignore
+*.md
+.vscode/
+.idea/
+*.log
+tmp/ 
