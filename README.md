@@ -123,8 +123,7 @@ The client can be configured with different options:
 
 ```go
 client := secretly.NewClient(
-    "http://localhost:8080",
-    secretly.WithBasePath("/api/v1"),
+    secretly.WithBaseURL("http://localhost:8080"),
     secretly.WithTimeout(5 * time.Second),
 )
 ```
