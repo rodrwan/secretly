@@ -17,7 +17,6 @@ const (
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
-	variables  map[string]interface{}
 }
 
 // ClientOption is a function that configures a Client
@@ -64,7 +63,34 @@ func New(opts ...ClientOption) *Client {
 }
 
 // GetEnv retrieves all environment variables from the Secretly server
-func (c *Client) GetEnv() (map[string]interface{}, error) {
+/*
+Example respose:
+[
+	{
+		"id": 1,
+		"name": "development",
+		"values": [
+			{
+				"id": 5,
+				"key": "PORT",
+				"value": "8080"
+			}
+		]
+	},
+	{
+		"id": 2,
+		"name": "staging",
+		"values": [
+			{
+				"id": 6,
+				"key": "PORT",
+				"value": "8080"
+			}
+		]
+	},
+]
+*/
+func (c *Client) getAllEnvironments() ([]map[string]interface{}, error) {
 	url := fmt.Sprintf("%s/api/v1/env", c.BaseURL)
 
 	resp, err := c.HTTPClient.Get(url)
@@ -77,42 +103,85 @@ func (c *Client) GetEnv() (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to get env: %s", resp.Status)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&c.variables); err != nil {
+	var environments []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&environments); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return c.variables, nil
+	return environments, nil
+}
+
+/*
+Query params:
+- name: string
+
+Example respose:
+[
+
+	{
+		"id": 1,
+		"name": "development",
+		"values": [
+			{
+				"id": 5,
+				"key": "PORT",
+				"value": "8080"
+			}
+		]
+	}
+
+]
+*/
+func (c *Client) getEnvironmentByName(environmentName string) ([]map[string]interface{}, error) {
+	url := fmt.Sprintf("%s/api/v1/env?name=%s", c.BaseURL, environmentName)
+
+	resp, err := c.HTTPClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get env: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get env: %s", resp.Status)
+	}
+
+	var environments []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&environments); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return environments, nil
 }
 
 // LoadToEnvironment loads the retrieved variables into the current process environment
-func (c *Client) LoadToEnvironment() error {
-	if c.variables == nil {
-		return fmt.Errorf("no variables to load")
+func (c *Client) LoadToEnvironment(environmentName string) error {
+	environments, err := c.getAllEnvironments()
+	if err != nil {
+		return err
 	}
 
-	for key, value := range c.variables {
-		os.Setenv(key, value.(string))
+	for _, environment := range environments {
+		if environment["name"] == environmentName {
+			for _, value := range environment["values"].([]map[string]interface{}) {
+				os.Setenv(value["key"].(string), value["value"].(string))
+			}
+		}
 	}
 
 	return nil
 }
 
-// Get retrieves a specific environment variable
-func (c *Client) Get(key string) (string, error) {
-	if c.variables == nil {
-		if _, err := c.GetEnv(); err != nil {
-			return "", err
-		}
+func (c *Client) GetEnvironmentByName(environmentName string) (map[string]interface{}, error) {
+	environments, err := c.getEnvironmentByName(environmentName)
+	if err != nil {
+		return nil, err
 	}
 
-	if value, ok := c.variables[key]; ok {
-		if strValue, ok := value.(string); ok {
-			return strValue, nil
-		}
-		return "", fmt.Errorf("variable %s is not a string", key)
+	if len(environments) == 0 {
+		return nil, fmt.Errorf("environment %s not found", environmentName)
 	}
 
-	return "", fmt.Errorf("variable %s not found", key)
+	return environments[0], nil
 }
 
 // IsNotFound checks if the error is a "not found" error
@@ -125,23 +194,11 @@ func IsUnauthorized(err error) bool {
 	return err != nil && err.Error() == "unauthorized"
 }
 
-func (c *Client) GetAll() (map[string]interface{}, error) {
-	url := fmt.Sprintf("%s/env", c.BaseURL)
-
-	resp, err := c.HTTPClient.Get(url)
+func (c *Client) GetAll() ([]map[string]interface{}, error) {
+	environments, err := c.getAllEnvironments()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get env: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get env: %s", resp.Status)
-	}
-
-	var env map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&env); err != nil {
 		return nil, err
 	}
 
-	return env, nil
+	return environments, nil
 }

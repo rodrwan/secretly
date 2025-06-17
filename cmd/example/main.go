@@ -12,7 +12,14 @@ func main() {
 		secretly.WithBaseURL("http://localhost:8080"),
 	)
 
-	env, err := client.GetEnv()
+	envs, err := client.GetAll()
+	if err != nil {
+		log.Fatalf("failed to get env: %v", err)
+	}
+
+	fmt.Println(envs)
+
+	env, err := client.GetEnvironmentByName("development")
 	if err != nil {
 		log.Fatalf("failed to get env: %v", err)
 	}
