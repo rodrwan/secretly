@@ -2,6 +2,8 @@
 
 A modern web application for managing environment variables securely.
 
+![Home](./home.png)
+
 ## Quick Start
 
 The easiest way to run Secretly is using Docker:
