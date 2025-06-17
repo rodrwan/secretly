@@ -1,3 +1,27 @@
+// Function to show toast notification
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+  const toastMessage = document.getElementById("toast-message");
+  const icon = toast.querySelector("i");
+
+  // Set message and icon
+  toastMessage.textContent = message;
+  icon.className =
+    type === "success"
+      ? "fas fa-check-circle text-code-green mr-2"
+      : "fas fa-exclamation-circle text-code-red mr-2";
+
+  // Show toast
+  toast.classList.remove("translate-y-full", "opacity-0");
+  toast.classList.add("translate-y-0", "opacity-100");
+
+  // Hide toast after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove("translate-y-0", "opacity-100");
+    toast.classList.add("translate-y-full", "opacity-0");
+  }, 3000);
+}
+
 // Function to load environment variables
 async function loadVariables() {
   try {
@@ -12,7 +36,7 @@ async function loadVariables() {
     });
   } catch (error) {
     console.error("Error loading variables:", error);
-    alert("Error loading environment variables");
+    showToast("Error loading environment variables", "error");
   }
 }
 
@@ -28,6 +52,10 @@ function addVariableToContainer(key = "", value = "") {
   keyInput.value = key;
   valueInput.value = value;
 
+  // Add animation class
+  const variableItem = clone.querySelector(".variable-item");
+  variableItem.classList.add("animate-fade-in");
+
   container.appendChild(clone);
 }
 
@@ -38,7 +66,13 @@ function addNewVariable() {
 
 // Function to remove a variable
 function removeVariable(button) {
-  button.closest(".variable-item").remove();
+  const item = button.closest(".variable-item");
+  item.classList.add("animate-fade-out");
+
+  // Wait for animation to complete before removing
+  setTimeout(() => {
+    item.remove();
+  }, 300);
 }
 
 // Function to save variables
@@ -65,16 +99,36 @@ async function saveVariables() {
     });
 
     if (response.ok) {
-      alert("Variables saved successfully");
+      showToast("Variables saved successfully");
       loadVariables(); // Reload to ensure synchronization
     } else {
       throw new Error("Error saving");
     }
   } catch (error) {
     console.error("Error saving variables:", error);
-    alert("Error saving environment variables");
+    showToast("Error saving environment variables", "error");
   }
 }
+
+// Add animation styles
+const style = document.createElement("style");
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(10px); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+    .animate-fade-out {
+        animation: fadeOut 0.3s ease-out;
+    }
+`;
+document.head.appendChild(style);
 
 // Load variables on startup
 document.addEventListener("DOMContentLoaded", loadVariables);

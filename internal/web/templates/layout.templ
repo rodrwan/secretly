@@ -8,16 +8,41 @@ templ Layout(title string) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
             <title>{ title } - secretly</title>
             <script src="https://cdn.tailwindcss.com"></script>
+            <script>
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            colors: {
+                                'code-bg': '#1a1b26',
+                                'code-fg': '#a9b1d6',
+                                'code-accent': '#7aa2f7',
+                                'code-green': '#9ece6a',
+                                'code-red': '#f7768e',
+                                'code-yellow': '#e0af68',
+                                'code-purple': '#bb9af7',
+                            }
+                        }
+                    }
+                }
+            </script>
             <script src="/static/js/app.js" defer></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
         </head>
-        <body class="bg-gray-100 min-h-screen">
-            <nav class="bg-white shadow-lg">
+        <body class="bg-code-bg text-code-fg min-h-screen">
+            <nav class="bg-code-bg border-b border-gray-800">
                 <div class="max-w-7xl mx-auto px-4">
                     <div class="flex justify-between h-16">
                         <div class="flex">
                             <div class="flex-shrink-0 flex items-center">
-                                <span class="text-xl font-bold text-gray-800">🔐 secretly</span>
+                                <span class="text-xl font-bold text-code-accent">
+                                    <i class="fas fa-key mr-2"></i>secretly
+                                </span>
                             </div>
+                        </div>
+                        <div class="flex items-center">
+                            <a href="https://github.com/rodrwan/secretly" target="_blank" class="text-code-fg hover:text-code-accent">
+                                <i class="fab fa-github text-xl"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
