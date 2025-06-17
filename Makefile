@@ -90,5 +90,5 @@ rollback:
 	@echo "Rolling back..."
 	goose -dir ./internal/database/migrations sqlite3 ./secretly.db down
 
-local-run: generate-templ
+local-run: generate-templ sqlc
 	go run ./cmd/server/main.go

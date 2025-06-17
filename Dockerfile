@@ -19,6 +19,10 @@ COPY . .
 RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN templ generate ./internal/web/templates/
 
+# Generate database with sqlc
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+RUN sqlc generate
+
 # Build the application with optimizations
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/secretly ./cmd/server
 
@@ -50,6 +54,9 @@ EXPOSE 8080
 ENV PORT=8080
 ENV ENV_PATH=/app/data/.env
 ENV BASE_PATH=/api/v1
+
+# Copy static files
+COPY ./internal/web/static /app/internal/web/static
 
 # Run the application
 CMD ["./secretly"]

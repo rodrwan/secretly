@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/pressly/goose/v3"
 	"github.com/rodrwan/secretly/cmd/server/handlers"
 	"github.com/rodrwan/secretly/internal/config"
 	"github.com/rodrwan/secretly/internal/database"
@@ -24,6 +26,18 @@ func main() {
 		log.Fatal(err)
 	}
 	queries := database.New(db)
+
+	// Run migrations
+	goose.SetBaseFS(database.Migrations)
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		log.Fatal(err)
+	}
+	goose.SetLogger(log.New(os.Stdout, "goose: ", log.LstdFlags))
+
+	// Run migrations
+	if err := goose.Up(db, "migrations"); err != nil {
+		log.Fatal(err)
+	}
 
 	// Server configuration
 	router := http.NewServeMux()
