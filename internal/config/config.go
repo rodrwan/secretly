@@ -6,19 +6,15 @@ import (
 
 // Config contains the server configuration
 type Config struct {
-	Port     string
-	EnvPath  string
-	BasePath string
-	DBPath   string
+	Port   string
+	DBPath string
 }
 
 // New creates a new configuration with default values
 func New() *Config {
 	return &Config{
-		Port:     getEnv("PORT", "8080"),
-		EnvPath:  getEnv("ENV_PATH", ".env"),
-		BasePath: getEnv("BASE_PATH", "/api/v1"),
-		DBPath:   getEnv("DB_PATH", "secretly.db"),
+		Port:   getEnv("PORT", "8080"),
+		DBPath: getEnv("DB_PATH", "secretly.db"),
 	}
 }
 

@@ -108,6 +108,39 @@ go run cmd/server/main.go
 - Docker support for easy deployment
 - Dark theme optimized for developers
 
+## 📚 Documentation
+
+For detailed deployment guides and advanced configurations, check out our documentation:
+
+- **[Docker Compose Guide](./docs/docker-compose.md)** - Complete guide for Docker Compose deployment
+- **[Kubernetes Guide](./docs/kubernetes.md)** - Complete guide for Kubernetes deployment
+- **[Documentation Index](./docs/README.md)** - Overview of all available documentation
+
+### Quick Deployment Examples
+
+**Docker Compose:**
+```bash
+git clone https://github.com/rodrwan/secretly.git
+cd secretly
+docker-compose up -d
+```
+
+**Kubernetes:**
+```bash
+kubectl apply -f docs/k8s/namespace.yaml
+kubectl apply -f docs/k8s/configmap.yaml
+kubectl apply -f docs/k8s/pvc.yaml
+kubectl apply -f docs/k8s/deployment.yaml
+kubectl apply -f docs/k8s/service.yaml
+```
+
+Or use our deployment script:
+```bash
+cd docs/k8s
+./deploy.sh dev  # for development
+./deploy.sh prod # for production
+```
+
 ## API Endpoints
 
 - `GET /api/v1/env`: Get all environment variables

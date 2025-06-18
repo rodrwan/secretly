@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secretly
+  namespace: secretly
+  labels:
+    app: secretly
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secretly
+  template:
+    metadata:
+      labels:
+        app: secretly
+    spec:
+      containers:
+      - name: secretly
+        image: rodrwan/secretly:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: secretly-config
+              key: PORT
+        - name: ENV_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: secretly-config
+              key: ENV_PATH
+        - name: BASE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: secretly-config
+              key: BASE_PATH
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/env
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/env
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: secretly-pvc
