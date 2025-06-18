@@ -183,17 +183,36 @@ func updateEnvironment(db database.Querier) func(w http.ResponseWriter, r *http.
 		}
 
 		for _, value := range request.Values {
-			_, err = db.CreateValue(r.Context(), database.CreateValueParams{
+			// Verificar si el valor ya existe para esta clave en el environment
+			existingValue, err := db.GetValueByKey(r.Context(), database.GetValueByKeyParams{
 				EnvironmentID: envID,
 				Key:           value.Key,
-				Value:         value.Value,
 			})
+
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				// Si no existe, crear un nuevo valor
+				_, err = db.CreateValue(r.Context(), database.CreateValueParams{
+					EnvironmentID: envID,
+					Key:           value.Key,
+					Value:         value.Value,
+				})
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				// Si existe, actualizar el valor
+				_, err = db.UpdateValue(r.Context(), database.UpdateValueParams{
+					ID:    existingValue.ID,
+					Value: value.Value,
+				})
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 		}
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

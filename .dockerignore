@@ -10,4 +10,5 @@ Dockerfile
 .vscode/
 .idea/
 *.log
-tmp/ 
+tmp/
+.cursor
