@@ -241,5 +241,19 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Function to toggle password visibility
+function togglePasswordVisibility(button) {
+  const input = button.parentElement.querySelector(".variable-value");
+  const icon = button.querySelector("i");
+
+  if (input.type === "password") {
+    input.type = "text";
+    icon.className = "fas fa-eye-slash";
+  } else {
+    input.type = "password";
+    icon.className = "fas fa-eye";
+  }
+}
+
 // Load environments on startup
 document.addEventListener("DOMContentLoaded", loadEnvironments);
