@@ -1,66 +1,66 @@
 #!/bin/bash
 
-# Script de despliegue para Secretly en Kubernetes
-# Uso: ./deploy.sh [dev|prod]
+# Kubernetes deployment script for Secretly
+# Usage: ./deploy.sh [dev|prod]
 
 set -e
 
 NAMESPACE="secretly"
 ENVIRONMENT=${1:-dev}
 
-echo "🚀 Desplegando Secretly en Kubernetes (ambiente: $ENVIRONMENT)"
+echo "🚀 Deploying Secretly on Kubernetes (environment: $ENVIRONMENT)"
 
-# Verificar que kubectl esté disponible
+# Check if kubectl is available
 if ! command -v kubectl &> /dev/null; then
-    echo "❌ kubectl no está instalado"
+    echo "❌ kubectl is not installed"
     exit 1
 fi
 
-# Crear namespace
-echo "📦 Creando namespace..."
+# Create namespace
+echo "📦 Creating namespace..."
 kubectl apply -f namespace.yaml
 
-# Aplicar ConfigMap
-echo "⚙️  Aplicando ConfigMap..."
+# Apply ConfigMap
+echo "⚙️  Applying ConfigMap..."
 kubectl apply -f configmap.yaml
 
-# Aplicar PVC
-echo "💾 Aplicando PersistentVolumeClaim..."
+# Apply PVC
+echo "💾 Applying PersistentVolumeClaim..."
 kubectl apply -f pvc.yaml
 
-# Aplicar Deployment
-echo "🔄 Aplicando Deployment..."
+# Apply Deployment
+echo "🔄 Applying Deployment..."
 kubectl apply -f deployment.yaml
 
-# Aplicar Service
-echo "🌐 Aplicando Service..."
+# Apply Service
+echo "🌐 Applying Service..."
 kubectl apply -f service.yaml
 
-# Aplicar Ingress si es producción
+# Apply Ingress if production
 if [ "$ENVIRONMENT" = "prod" ]; then
-    echo "🔗 Aplicando Ingress..."
+    echo "🔗 Applying Ingress..."
     kubectl apply -f ingress.yaml
 fi
 
-# Esperar a que los pods estén listos
-echo "⏳ Esperando a que los pods estén listos..."
+# Wait for pods to be ready
+echo "⏳ Waiting for pods to be ready..."
 kubectl wait --for=condition=ready pod -l app=secretly -n $NAMESPACE --timeout=300s
 
-# Verificar el despliegue
-echo "✅ Verificando despliegue..."
+# Check deployment
+echo "✅ Checking deployment..."
 kubectl get all -n $NAMESPACE
 
-echo "🎉 ¡Despliegue completado!"
+echo "🎉 Deployment completed!"
 echo ""
-echo "📊 Estado del despliegue:"
+echo "📊 Deployment status:"
 kubectl get pods -n $NAMESPACE
 echo ""
-echo "🌐 Para acceder al servicio:"
+echo "🌐 To access the service:"
 if [ "$ENVIRONMENT" = "prod" ]; then
     echo "   URL: https://secretly.yourdomain.com"
 else
     echo "   Port-forward: kubectl port-forward service/secretly-service 8080:80 -n $NAMESPACE"
-    echo "   URL local: http://localhost:8080"
+    echo "   Local URL: http://localhost:8080"
 fi
 echo ""
 echo "📝 Logs: kubectl logs -f deployment/secretly -n $NAMESPACE"

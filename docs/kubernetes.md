@@ -1,8 +1,8 @@
-# Despliegue en Kubernetes
+# Kubernetes Deployment
 
-Esta guía te ayudará a desplegar Secretly en un cluster de Kubernetes, incluyendo configuraciones para diferentes ambientes.
+This guide will help you deploy Secretly on a Kubernetes cluster, including configurations for different environments.
 
-## Configuración Básica
+## Basic Configuration
 
 ### 1. Namespace
 
@@ -117,7 +117,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: standard  # Ajustar según tu cluster
+  storageClassName: standard  # Adjust according to your cluster
 ```
 
 ### 5. Service
@@ -142,7 +142,7 @@ spec:
     app: secretly
 ```
 
-### 6. Ingress (Opcional)
+### 6. Ingress (Optional)
 
 ```yaml
 # ingress.yaml
@@ -172,29 +172,29 @@ spec:
               number: 80
 ```
 
-## Despliegue
+## Deployment
 
 ```bash
-# Crear namespace
+# Create namespace
 kubectl apply -f namespace.yaml
 
-# Aplicar configuración
+# Apply configuration
 kubectl apply -f configmap.yaml
 kubectl apply -f pvc.yaml
 kubectl apply -f deployment.yaml
 kubectl apply -f service.yaml
 
-# Aplicar ingress (opcional)
+# Apply ingress (optional)
 kubectl apply -f ingress.yaml
 
-# Verificar el despliegue
+# Check deployment
 kubectl get all -n secretly
 kubectl get pvc -n secretly
 ```
 
-## Configuraciones Avanzadas
+## Advanced Configurations
 
-### Desarrollo
+### Development
 
 ```yaml
 # deployment-dev.yaml
@@ -242,7 +242,7 @@ spec:
         emptyDir: {}
 ```
 
-### Producción con HPA
+### Production with HPA
 
 ```yaml
 # deployment-prod.yaml
@@ -336,7 +336,7 @@ spec:
         averageUtilization: 80
 ```
 
-### Con Base de Datos Externa
+### With External Database
 
 ```yaml
 # deployment-with-db.yaml
@@ -381,7 +381,7 @@ spec:
           claimName: secretly-pvc
 ```
 
-### Secret para Base de Datos
+### Secret for Database
 
 ```yaml
 # secret.yaml
@@ -395,9 +395,9 @@ data:
   url: cG9zdGdyZXNxbDovL3VzZXI6cGFzc3dvcmRAcG9zdGdyZXM6NTQzMi9zZWNyZXRseQ==  # base64 encoded
 ```
 
-## Monitoreo y Logging
+## Monitoring and Logging
 
-### ServiceMonitor para Prometheus
+### ServiceMonitor for Prometheus
 
 ```yaml
 # servicemonitor.yaml
@@ -416,7 +416,7 @@ spec:
     path: /api/v1/env
 ```
 
-### Configuración de Logging
+### Logging Configuration
 
 ```yaml
 # deployment-with-logging.yaml
@@ -431,7 +431,7 @@ spec:
       containers:
       - name: secretly
         image: rodrwan/secretly:latest
-        # ... otras configuraciones
+        # ... other configurations
         volumeMounts:
         - name: data-volume
           mountPath: /app/data
@@ -445,76 +445,76 @@ spec:
         emptyDir: {}
 ```
 
-## Comandos Útiles
+## Useful Commands
 
 ```bash
-# Verificar estado del despliegue
+# Check deployment status
 kubectl get pods -n secretly
 kubectl get services -n secretly
 kubectl get pvc -n secretly
 
-# Ver logs de un pod
+# View pod logs
 kubectl logs -f deployment/secretly -n secretly
 
-# Ejecutar comandos en un pod
+# Execute commands in a pod
 kubectl exec -it deployment/secretly -n secretly -- sh
 
-# Escalar el deployment
+# Scale deployment
 kubectl scale deployment secretly --replicas=3 -n secretly
 
-# Verificar eventos
+# Check events
 kubectl get events -n secretly --sort-by='.lastTimestamp'
 
-# Port-forward para acceso local
+# Port-forward for local access
 kubectl port-forward service/secretly-service 8080:80 -n secretly
 
-# Hacer backup de los datos
+# Backup data
 kubectl exec deployment/secretly -n secretly -- tar -czf /tmp/backup.tar.gz /app/data
 kubectl cp secretly/secretly-pod:/tmp/backup.tar.gz ./backup.tar.gz
 ```
 
 ## Troubleshooting
 
-### Problema: Pod no inicia
+### Issue: Pod doesn't start
 
 ```bash
-# Verificar eventos del pod
+# Check pod events
 kubectl describe pod <pod-name> -n secretly
 
-# Verificar logs
+# Check logs
 kubectl logs <pod-name> -n secretly
 
-# Verificar configuración del deployment
+# Check deployment configuration
 kubectl describe deployment secretly -n secretly
 ```
 
-### Problema: PVC no se monta
+### Issue: PVC doesn't mount
 
 ```bash
-# Verificar estado del PVC
+# Check PVC status
 kubectl describe pvc secretly-pvc -n secretly
 
-# Verificar storage class
+# Check storage class
 kubectl get storageclass
 
-# Verificar eventos del PVC
+# Check PVC events
 kubectl get events -n secretly | grep pvc
 ```
 
-### Problema: Service no funciona
+### Issue: Service doesn't work
 
 ```bash
-# Verificar endpoints
+# Check endpoints
 kubectl get endpoints -n secretly
 
-# Verificar configuración del service
+# Check service configuration
 kubectl describe service secretly-service -n secretly
 
-# Probar conectividad
+# Test connectivity
 kubectl run test-pod --image=busybox -it --rm --restart=Never -- wget -O- http://secretly-service
 ```
 
-## Seguridad
+## Security
 
 ### Network Policies
 
@@ -566,7 +566,7 @@ spec:
       app: secretly
 ```
 
-## Integración con CI/CD
+## CI/CD Integration
 
 ### ArgoCD
 
@@ -613,20 +613,20 @@ spec:
   targetNamespace: secretly
 ```
 
-## Helm Chart (Opcional)
+## Helm Chart (Optional)
 
-Si prefieres usar Helm, puedes crear un chart:
+If you prefer to use Helm, you can create a chart:
 
 ```bash
-# Crear estructura del chart
+# Create chart structure
 helm create secretly
 
-# Instalar el chart
+# Install chart
 helm install secretly ./secretly -n secretly
 
-# Actualizar el chart
+# Update chart
 helm upgrade secretly ./secretly -n secretly
 
-# Desinstalar
+# Uninstall
 helm uninstall secretly -n secretly
 ``` 

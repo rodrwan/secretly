@@ -1,10 +1,10 @@
-# Despliegue con Docker Compose
+# Docker Compose Deployment
 
-Esta guía te ayudará a desplegar Secretly usando Docker Compose en diferentes ambientes de desarrollo.
+This guide will help you deploy Secretly using Docker Compose in different development environments.
 
-## Configuración Básica
+## Basic Configuration
 
-### 1. Archivo docker-compose.yml
+### 1. docker-compose.yml File
 
 ```yaml
 version: '3.8'
@@ -35,25 +35,25 @@ networks:
     driver: bridge
 ```
 
-### 2. Despliegue
+### 2. Deployment
 
 ```bash
-# Crear el directorio de datos
+# Create data directory
 mkdir -p data
 
-# Iniciar el servicio
+# Start the service
 docker-compose up -d
 
-# Verificar el estado
+# Check status
 docker-compose ps
 
-# Ver logs
+# View logs
 docker-compose logs -f secretly
 ```
 
-## Configuraciones Avanzadas
+## Advanced Configurations
 
-### Desarrollo Local
+### Local Development
 
 ```yaml
 version: '3.8'
@@ -68,7 +68,7 @@ services:
       - "8080:8080"
     volumes:
       - ./data:/app/data
-      - ./internal:/app/internal  # Para desarrollo con hot-reload
+      - ./internal:/app/internal  # For development with hot-reload
     environment:
       - PORT=8080
       - ENV_PATH=/app/data/.env
@@ -83,7 +83,7 @@ networks:
     driver: bridge
 ```
 
-### Producción
+### Production
 
 ```yaml
 version: '3.8'
@@ -93,7 +93,7 @@ services:
     image: rodrwan/secretly:latest
     container_name: secretly-prod
     ports:
-      - "9000:8080"  # Puerto externo diferente
+      - "9000:8080"  # Different external port
     volumes:
       - secretly-data:/app/data
     environment:
@@ -123,7 +123,7 @@ networks:
     driver: bridge
 ```
 
-### Con Base de Datos Externa
+### With External Database
 
 ```yaml
 version: '3.8'
@@ -171,116 +171,116 @@ networks:
     driver: bridge
 ```
 
-## Variables de Entorno
+## Environment Variables
 
-| Variable | Descripción | Valor por Defecto |
-|----------|-------------|-------------------|
-| `PORT` | Puerto donde se ejecuta el servidor | `8080` |
-| `ENV_PATH` | Ruta al archivo .env | `/app/data/.env` |
-| `BASE_PATH` | Ruta base de la API | `/api/v1` |
-| `DEBUG` | Modo debug (desarrollo) | `false` |
-| `DATABASE_URL` | URL de conexión a base de datos | - |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `PORT` | Port where the server runs | `8080` |
+| `ENV_PATH` | Path to the .env file | `/app/data/.env` |
+| `BASE_PATH` | API base path | `/api/v1` |
+| `DEBUG` | Debug mode (development) | `false` |
+| `DATABASE_URL` | Database connection URL | - |
 
-## Comandos Útiles
+## Useful Commands
 
 ```bash
-# Iniciar servicios
+# Start services
 docker-compose up -d
 
-# Detener servicios
+# Stop services
 docker-compose down
 
-# Reiniciar un servicio específico
+# Restart a specific service
 docker-compose restart secretly
 
-# Ver logs en tiempo real
+# View logs in real-time
 docker-compose logs -f secretly
 
-# Ejecutar comandos dentro del contenedor
+# Execute commands inside the container
 docker-compose exec secretly sh
 
-# Hacer backup de los datos
+# Backup data
 docker-compose exec secretly tar -czf /tmp/backup.tar.gz /app/data
 docker cp secretly:/tmp/backup.tar.gz ./backup.tar.gz
 
-# Restaurar backup
+# Restore backup
 docker cp ./backup.tar.gz secretly:/tmp/backup.tar.gz
 docker-compose exec secretly tar -xzf /tmp/backup.tar.gz -C /
 ```
 
-## Monitoreo y Health Checks
+## Monitoring and Health Checks
 
-El servicio incluye health checks automáticos que verifican:
+The service includes automatic health checks that verify:
 
-- Disponibilidad del puerto 8080
-- Respuesta HTTP del endpoint principal
-- Estado del contenedor
+- Port 8080 availability
+- HTTP response from main endpoint
+- Container status
 
-### Verificar Estado
+### Check Status
 
 ```bash
-# Verificar health check
+# Check health status
 docker-compose ps
 
-# Ver logs de health check
+# View health check logs
 docker inspect secretly | grep -A 10 "Health"
 
-# Verificar endpoint manualmente
+# Manually check endpoint
 curl http://localhost:8080/api/v1/env
 ```
 
 ## Troubleshooting
 
-### Problema: Contenedor no inicia
+### Issue: Container doesn't start
 
 ```bash
-# Verificar logs
+# Check logs
 docker-compose logs secretly
 
-# Verificar permisos del directorio data
+# Check data directory permissions
 ls -la data/
 
-# Recrear contenedor
+# Recreate container
 docker-compose down
 docker-compose up -d --force-recreate
 ```
 
-### Problema: Datos no persisten
+### Issue: Data doesn't persist
 
 ```bash
-# Verificar volumen
+# Check volume
 docker volume ls
 
-# Verificar montaje
+# Check mount
 docker inspect secretly | grep -A 10 "Mounts"
 
-# Recrear volumen
+# Recreate volume
 docker-compose down -v
 docker-compose up -d
 ```
 
-### Problema: Puerto ocupado
+### Issue: Port is occupied
 
 ```bash
-# Cambiar puerto en docker-compose.yml
+# Change port in docker-compose.yml
 ports:
-  - "8081:8080"  # Puerto externo 8081
+  - "8081:8080"  # External port 8081
 
-# O verificar qué usa el puerto
+# Or check what's using the port
 lsof -i :8080
 ```
 
-## Seguridad
+## Security
 
-### Recomendaciones para Producción
+### Production Recommendations
 
-1. **Usar volúmenes nombrados** en lugar de bind mounts
-2. **Configurar secrets** para credenciales sensibles
-3. **Usar redes personalizadas** para aislar servicios
-4. **Implementar autenticación** si es necesario
-5. **Configurar backups automáticos** de los datos
+1. **Use named volumes** instead of bind mounts
+2. **Configure secrets** for sensitive credentials
+3. **Use custom networks** to isolate services
+4. **Implement authentication** if necessary
+5. **Configure automatic backups** of data
 
-### Ejemplo con Secrets
+### Example with Secrets
 
 ```yaml
 version: '3.8'
@@ -292,14 +292,14 @@ services:
       - db_password
     environment:
       - DATABASE_PASSWORD_FILE=/run/secrets/db_password
-    # ... resto de configuración
+    # ... rest of configuration
 
 secrets:
   db_password:
     file: ./secrets/db_password.txt
 ```
 
-## Integración con CI/CD
+## CI/CD Integration
 
 ### GitHub Actions
 
