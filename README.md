@@ -4,6 +4,8 @@ A modern web application for managing environment variables securely.
 
 ![Home](./home.png)
 
+Secretly is a simple web service with an intuitive interface that helps you manage environment variables from a centralized location. It supports multiple environments and provides a REST API for runtime access to your environment variables. Use this as an internal service to securely manage and retrieve your environment configuration.
+
 ## Quick Start
 
 The easiest way to run Secretly is using Docker:

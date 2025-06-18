@@ -1,31 +1,40 @@
 package web
 
 import (
+	"embed"
+	"io/fs"
+	"log"
 	"net/http"
 
 	"github.com/rodrwan/secretly/internal/database"
-	"github.com/rodrwan/secretly/internal/env"
 	"github.com/rodrwan/secretly/internal/web/templates"
 )
 
+//go:embed static
+var staticFiles embed.FS
+
 // Handler maneja las rutas web
 type Handler struct {
-	envManager *env.Manager
-	queries    *database.Queries
+	queries *database.Queries
 }
 
 // NewHandler crea una nueva instancia del manejador web
-func NewHandler(envManager *env.Manager, queries *database.Queries) *Handler {
+func NewHandler(queries *database.Queries) *Handler {
 	return &Handler{
-		envManager: envManager,
-		queries:    queries,
+		queries: queries,
 	}
 }
 
 // RegisterRoutes registra las rutas web
 func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 	// Servir archivos estáticos
-	fs := http.FileServer(http.Dir("internal/web/static"))
+	staticFs, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	fs := http.FileServer(http.FS(staticFs))
 	router.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// Rutas de la aplicación

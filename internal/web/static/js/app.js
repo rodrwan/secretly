@@ -31,7 +31,7 @@ async function loadEnvironments() {
     const container = document.getElementById("environments-container");
     container.innerHTML = "";
 
-    environments.forEach((env) => {
+    environments?.data?.forEach((env) => {
       addEnvironmentToContainer(env);
     });
   } catch (error) {
@@ -75,10 +75,31 @@ function addNewEnvironment() {
 function removeEnvironment(button) {
   const item = button.closest(".environment-item");
   item.classList.add("animate-fade-out");
-
+  const nameInput = item.querySelector(".environment-name");
   // Wait for animation to complete before removing
-  setTimeout(() => {
+  setTimeout(async () => {
     item.remove();
+    try {
+      const environmentId = nameInput.dataset.id;
+      const url = `/api/v1/env/${environmentId}`;
+
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        showToast("Variable deleted successfully");
+        loadEnvironments(); // Reload to ensure synchronization
+      } else {
+        throw new Error("Error deleting variable");
+      }
+    } catch (error) {
+      console.error("Error saving environment:", error);
+      showToast("Error saving environment", "error");
+    }
   }, 300);
 }
 

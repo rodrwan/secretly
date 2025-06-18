@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/a-h/templ v0.3.898
 	github.com/pressly/goose/v3 v3.24.3
+	go.uber.org/zap v1.27.0
 	modernc.org/sqlite v1.38.0
 )
 
