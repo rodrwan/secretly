@@ -65,31 +65,49 @@ func New(opts ...ClientOption) *Client {
 // GetEnv retrieves all environment variables from the Secretly server
 /*
 Example respose:
-[
-	{
-		"id": 1,
-		"name": "development",
-		"values": [
-			{
-				"id": 5,
-				"key": "PORT",
-				"value": "8080"
-			}
-		]
-	},
-	{
-		"id": 2,
-		"name": "staging",
-		"values": [
-			{
-				"id": 6,
-				"key": "PORT",
-				"value": "8080"
-			}
-		]
-	},
-]
+{
+	"data": [
+		{
+			"id": 1,
+			"name": "ad-server",
+			"values": [
+				{
+					"id": 1,
+					"key": "PORT",
+					"value": "8080"
+				},
+				{
+					"id": 2,
+					"key": "DATABASE_URL",
+					"value": "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+				},
+				{
+					"id": 3,
+					"key": "REDIS_URL",
+					"value": "redis:6379"
+				}
+			]
+		}
+	],
+	"code": 200,
+	"message": "Environments retrieved",
+	"error": ""
+}
+
+type GetEnvResponse struct {
+	Data []map[string]interface{} `json:"data"`
+}
+
+}
 */
+
+type GetEnvResponse struct {
+	Code    int                      `json:"code"`
+	Message string                   `json:"message"`
+	Error   string                   `json:"error"`
+	Data    []map[string]interface{} `json:"data"`
+}
+
 func (c *Client) getAllEnvironments() ([]map[string]interface{}, error) {
 	url := fmt.Sprintf("%s/api/v1/env", c.BaseURL)
 
@@ -103,12 +121,12 @@ func (c *Client) getAllEnvironments() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to get env: %s", resp.Status)
 	}
 
-	var environments []map[string]interface{}
+	var environments GetEnvResponse
 	if err := json.NewDecoder(resp.Body).Decode(&environments); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return environments, nil
+	return environments.Data, nil
 }
 
 /*
