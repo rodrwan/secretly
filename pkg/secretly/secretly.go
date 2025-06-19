@@ -102,13 +102,25 @@ type GetEnvResponse struct {
 */
 
 type GetEnvResponse struct {
-	Code    int                      `json:"code"`
-	Message string                   `json:"message"`
-	Error   string                   `json:"error"`
-	Data    []map[string]interface{} `json:"data"`
+	Code    int                   `json:"code"`
+	Message string                `json:"message"`
+	Error   string                `json:"error"`
+	Data    []EnvironmentResponse `json:"data"`
 }
 
-func (c *Client) getAllEnvironments() ([]map[string]interface{}, error) {
+type EnvironmentResponse struct {
+	ID     int                 `json:"id"`
+	Name   string              `json:"name"`
+	Values []EnvValuesResponse `json:"values"`
+}
+
+type EnvValuesResponse struct {
+	ID    int    `json:"id"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func (c *Client) getAllEnvironments() ([]EnvironmentResponse, error) {
 	url := fmt.Sprintf("%s/api/v1/env", c.BaseURL)
 
 	resp, err := c.HTTPClient.Get(url)
@@ -179,9 +191,9 @@ func (c *Client) LoadToEnvironment(environmentName string) error {
 	}
 
 	for _, environment := range environments {
-		if environment["name"] == environmentName {
-			for _, value := range environment["values"].([]map[string]interface{}) {
-				os.Setenv(value["key"].(string), value["value"].(string))
+		if environment.Name == environmentName {
+			for _, value := range environment.Values {
+				os.Setenv(value.Key, value.Value)
 			}
 		}
 	}
@@ -212,7 +224,7 @@ func IsUnauthorized(err error) bool {
 	return err != nil && err.Error() == "unauthorized"
 }
 
-func (c *Client) GetAll() ([]map[string]interface{}, error) {
+func (c *Client) GetAll() ([]EnvironmentResponse, error) {
 	environments, err := c.getAllEnvironments()
 	if err != nil {
 		return nil, err
