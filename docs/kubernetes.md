@@ -64,16 +64,6 @@ spec:
             configMapKeyRef:
               name: secretly-config
               key: PORT
-        - name: ENV_PATH
-          valueFrom:
-            configMapKeyRef:
-              name: secretly-config
-              key: ENV_PATH
-        - name: BASE_PATH
-          valueFrom:
-            configMapKeyRef:
-              name: secretly-config
-              key: BASE_PATH
         volumeMounts:
         - name: data-volume
           mountPath: /app/data
@@ -221,10 +211,6 @@ spec:
         env:
         - name: PORT
           value: "8080"
-        - name: ENV_PATH
-          value: "/app/data/.env"
-        - name: BASE_PATH
-          value: "/api/v1"
         - name: DEBUG
           value: "true"
         volumeMounts:
@@ -269,10 +255,6 @@ spec:
         env:
         - name: PORT
           value: "8080"
-        - name: ENV_PATH
-          value: "/app/data/.env"
-        - name: BASE_PATH
-          value: "/api/v1"
         volumeMounts:
         - name: data-volume
           mountPath: /app/data
@@ -363,10 +345,6 @@ spec:
         env:
         - name: PORT
           value: "8080"
-        - name: ENV_PATH
-          value: "/app/data/.env"
-        - name: BASE_PATH
-          value: "/api/v1"
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:

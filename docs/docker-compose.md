@@ -19,8 +19,6 @@ services:
       - ./data:/app/data
     environment:
       - PORT=8080
-      - ENV_PATH=/app/data/.env
-      - BASE_PATH=/api/v1
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:8080"]
@@ -71,8 +69,6 @@ services:
       - ./internal:/app/internal  # For development with hot-reload
     environment:
       - PORT=8080
-      - ENV_PATH=/app/data/.env
-      - BASE_PATH=/api/v1
       - DEBUG=true
     restart: unless-stopped
     networks:
@@ -98,8 +94,6 @@ services:
       - secretly-data:/app/data
     environment:
       - PORT=8080
-      - ENV_PATH=/app/data/.env
-      - BASE_PATH=/api/v1
     restart: always
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:8080"]
@@ -123,63 +117,11 @@ networks:
     driver: bridge
 ```
 
-### With External Database
-
-```yaml
-version: '3.8'
-
-services:
-  secretly:
-    image: rodrwan/secretly:latest
-    container_name: secretly
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data:/app/data
-    environment:
-      - PORT=8080
-      - ENV_PATH=/app/data/.env
-      - BASE_PATH=/api/v1
-      - DATABASE_URL=postgresql://user:password@postgres:5432/secretly
-    depends_on:
-      - postgres
-    restart: unless-stopped
-    networks:
-      - secretly-network
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: secretly-postgres
-    environment:
-      - POSTGRES_DB=secretly
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
-    networks:
-      - secretly-network
-
-volumes:
-  postgres-data:
-    driver: local
-
-networks:
-  secretly-network:
-    driver: bridge
-```
-
 ## Environment Variables
 
 | Variable | Description | Default Value |
 |----------|-------------|---------------|
 | `PORT` | Port where the server runs | `8080` |
-| `ENV_PATH` | Path to the .env file | `/app/data/.env` |
-| `BASE_PATH` | API base path | `/api/v1` |
-| `DEBUG` | Debug mode (development) | `false` |
-| `DATABASE_URL` | Database connection URL | - |
 
 ## Useful Commands
 
