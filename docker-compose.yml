@@ -11,8 +11,6 @@ services:
       - ./data:/app/data
     environment:
       - PORT=8080
-      - ENV_PATH=/app/data/.env
-      - BASE_PATH=/api/v1
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:8080"]

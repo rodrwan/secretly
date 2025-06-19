@@ -43,8 +43,6 @@ docker-compose up -d
 The following environment variables can be configured:
 
 - `PORT`: Port to run the server on (default: 8080)
-- `ENV_PATH`: Path to the .env file (default: /app/data/.env)
-- `BASE_PATH`: API base path (default: /api/v1)
 
 Example with custom configuration:
 
@@ -54,7 +52,6 @@ docker run -d \
   -p 9000:9000 \
   -v $(pwd)/data:/app/data \
   -e PORT=9000 \
-  -e BASE_PATH=/api/v1 \
   rodrwan/secretly:latest
 ```
 

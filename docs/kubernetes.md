@@ -27,8 +27,6 @@ metadata:
   namespace: secretly
 data:
   PORT: "8080"
-  ENV_PATH: "/app/data/.env"
-  BASE_PATH: "/api/v1"
 ```
 
 ### 3. Deployment

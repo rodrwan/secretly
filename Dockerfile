@@ -52,8 +52,6 @@ EXPOSE 8080
 
 # Set environment variables
 ENV PORT=8080
-ENV ENV_PATH=/app/data/.env
-ENV BASE_PATH=/api/v1
 
 # Copy static files
 COPY ./internal/web/static /app/internal/web/static
